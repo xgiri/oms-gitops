@@ -14,7 +14,7 @@ spec:
       helm:
         valueFiles:
           - $values/environments/prod/infra/ingress-nginx/values.yaml
-    - repoURL: https://github.com/xgiri/gitops.git
+    - repoURL: https://github.com/xgiri/oms-gitops.git
       targetRevision: main
       ref: values
   destination:

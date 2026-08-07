@@ -10,7 +10,7 @@ metadata:
 spec:
   project: platform
   source:
-    repoURL: https://github.com/xgiri/gitops.git
+    repoURL: https://github.com/xgiri/oms-gitops.git
     targetRevision: main
     path: bootstrap/children/prod
   destination:

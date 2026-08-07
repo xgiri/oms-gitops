@@ -9,7 +9,7 @@ metadata:
 spec:
   description: Scope for the per-environment root (app-of-apps) Applications.
   sourceRepos:
-    - https://github.com/xgiri/gitops.git
+    - https://github.com/xgiri/oms-gitops.git
   destinations:
     - namespace: argocd
       server: '*'

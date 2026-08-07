@@ -8,7 +8,7 @@ metadata:
 spec:
   project: infra
   source:
-    repoURL: https://github.com/xgiri/gitops.git
+    repoURL: https://github.com/xgiri/oms-gitops.git
     targetRevision: main
     path: environments/uat/infra/namespaces
   destination:

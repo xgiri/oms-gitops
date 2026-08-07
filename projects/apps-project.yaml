@@ -6,13 +6,13 @@ metadata:
 spec:
   description: OMS application tier. Namespaced only — no cluster-scoped resources.
   sourceRepos:
-    - https://github.com/xgiri/gitops.git
+    - https://github.com/xgiri/oms-gitops.git
     - https://github.com/xgiri/oms-backend.git
     - https://github.com/xgiri/oms-gateway.git
     - https://github.com/xgiri/oms-bff.git
-    - https://github.com/xgiri/product-service.git
-    - https://github.com/xgiri/customer-service.git
-    - https://github.com/xgiri/shipment-service.git
+    - https://github.com/xgiri/oms-product-service.git
+    - https://github.com/xgiri/oms-customer-service.git
+    - https://github.com/xgiri/oms-shipment-service.git
   destinations:
     - namespace: oms-core
       server: '*'

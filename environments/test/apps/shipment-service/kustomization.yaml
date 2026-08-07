@@ -6,7 +6,7 @@ kind: Kustomization
 # see README.md's "environment -> ref" table for why prod pins a release
 # tag while dev tracks a branch.
 resources:
-  - https://github.com/xgiri/shipment-service//k8s?ref=release/test
+  - https://github.com/xgiri/oms-shipment-service//k8s?ref=release/test
 
 images:
   - name: your-registry.example.com/shipment-service
