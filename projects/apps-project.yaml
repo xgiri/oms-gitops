@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  description: Application-tier services. Deliberately narrower than the infra project.
+  sourceRepos:
+    - https://github.com/org/gitops.git
+  destinations:
+    - namespace: payments
+      server: https://kubernetes.default.svc
+    - namespace: checkout
+      server: https://kubernetes.default.svc
+    - namespace: notifications
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist: []   # app teams should never need cluster-scoped resources
+  namespaceResourceWhitelist:
+    - group: 'apps'
+      kind: Deployment
+    - group: ''
+      kind: Service
+    - group: ''
+      kind: ConfigMap
+    - group: ''
+      kind: Secret
+    - group: 'networking.k8s.io'
+      kind: Ingress
+    - group: 'autoscaling'
+      kind: HorizontalPodAutoscaler

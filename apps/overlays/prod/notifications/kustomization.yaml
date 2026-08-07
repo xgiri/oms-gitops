@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: notifications
+resources:
+  - ../../../base/notifications
+images:
+  - name: org/notifications
+    newTag: "v1.0.7"
+patches:
+  - target:
+      kind: Deployment
+      name: notifications
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2

@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-namespaces
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"   # namespaces first, everything else depends on these existing
+spec:
+  project: infra
+  source:
+    repoURL: https://github.com/org/gitops.git
+    targetRevision: main
+    path: infra/overlays/prod/namespaces
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd   # namespace manifests themselves are cluster-scoped
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

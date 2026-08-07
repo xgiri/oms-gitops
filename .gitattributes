@@ -1,0 +1,26 @@
+# Auto-detect text files and normalize line endings to LF by default
+* text=auto eol=lf
+
+# Explicit rules for common source/config types (redundant with the line above,
+# but explicit for clarity and to guard against `text=auto` misdetecting a file)
+*.java text eol=lf
+*.xml text eol=lf
+*.properties text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+
+# Windows-specific scripts must keep CRLF — listed after the catch-all so they win
+*.cmd text eol=crlf
+
+# Maven wrapper (unix shell script) must stay LF regardless of OS
+/mvnw text eol=lf
+
+# Binary files — never touch these, no line-ending conversion applies
+*.jar binary
+*.class binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
