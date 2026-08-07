@@ -1,0 +1,12 @@
+# loki-stack chart — bundles Loki + Promtail, the in-cluster equivalent of
+# docker-compose's loki/promtail pair. Filesystem storage here matches that
+# same local-dev-only caveat from the compose file; swap for S3/GCS-backed
+# storage config before this is real for anything past dev.
+loki:
+  persistence:
+    enabled: true
+    size: 5Gi
+promtail:
+  enabled: true
+grafana:
+  enabled: false   # already installed by the observability (kube-prometheus-stack) release above

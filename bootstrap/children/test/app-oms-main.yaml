@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-oms-main
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: apps
+  source:
+    repoURL: https://github.com/xgiri/gitops.git
+    targetRevision: main
+    path: environments/test/apps/oms-main
+  destination:
+    name: test
+    namespace: oms-core
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

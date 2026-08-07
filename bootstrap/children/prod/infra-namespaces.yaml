@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-namespaces
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  project: infra
+  source:
+    repoURL: https://github.com/xgiri/gitops.git
+    targetRevision: main
+    path: environments/prod/infra/namespaces
+  destination:
+    name: prod
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

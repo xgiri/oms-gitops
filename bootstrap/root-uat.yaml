@@ -1,0 +1,25 @@
+# Apply once per environment/cluster:
+#   kubectl apply -f bootstrap/root-uat.yaml --context <your-uat-context>
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-uat
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/xgiri/gitops.git
+    targetRevision: main
+    path: bootstrap/children/uat
+  destination:
+    name: uat   # Argo CD cluster registered under this name: `argocd cluster add <context> --name uat`
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

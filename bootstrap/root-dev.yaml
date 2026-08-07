@@ -1,0 +1,25 @@
+# Apply once per environment/cluster:
+#   kubectl apply -f bootstrap/root-dev.yaml --context <your-dev-context>
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/xgiri/gitops.git
+    targetRevision: main
+    path: bootstrap/children/dev
+  destination:
+    name: dev   # Argo CD cluster registered under this name: `argocd cluster add <context> --name dev`
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

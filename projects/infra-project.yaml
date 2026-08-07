@@ -1,17 +1,21 @@
-# Scopes what infra Applications are allowed to touch. Apply once, or add
-# it to bootstrap/children if you want Argo CD to manage its own Projects too.
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
   name: infra
   namespace: argocd
 spec:
-  description: Cluster-wide infra components (cert-manager, ingress, secrets sync, etc.)
+  description: Cluster-wide infra (namespaces, cert-manager, ingress, Vault, Kafka, Redis, observability).
   sourceRepos:
-    - https://github.com/org/gitops.git
+    - https://github.com/xgiri/gitops.git
+    - https://charts.jetstack.io
+    - https://kubernetes.github.io/ingress-nginx
+    - https://helm.releases.hashicorp.com
+    - https://charts.bitnami.com/bitnami
+    - https://prometheus-community.github.io/helm-charts
+    - https://grafana.github.io/helm-charts
   destinations:
     - namespace: '*'
-      server: https://kubernetes.default.svc
+      server: '*'
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'

@@ -4,27 +4,19 @@ metadata:
   name: apps
   namespace: argocd
 spec:
-  description: Application-tier services. Deliberately narrower than the infra project.
+  description: OMS application tier. Namespaced only — no cluster-scoped resources.
   sourceRepos:
-    - https://github.com/org/gitops.git
+    - https://github.com/xgiri/gitops.git
+    - https://github.com/xgiri/oms-main.git
+    - https://github.com/xgiri/oms-gateway.git
+    - https://github.com/xgiri/oms-bff.git
+    - https://github.com/xgiri/product-service.git
+    - https://github.com/xgiri/customer-service.git
+    - https://github.com/xgiri/shipment-service.git
   destinations:
-    - namespace: payments
-      server: https://kubernetes.default.svc
-    - namespace: checkout
-      server: https://kubernetes.default.svc
-    - namespace: notifications
-      server: https://kubernetes.default.svc
-  clusterResourceWhitelist: []   # app teams should never need cluster-scoped resources
+    - namespace: oms-core
+      server: '*'
+  clusterResourceWhitelist: []
   namespaceResourceWhitelist:
-    - group: 'apps'
-      kind: Deployment
-    - group: ''
-      kind: Service
-    - group: ''
-      kind: ConfigMap
-    - group: ''
-      kind: Secret
-    - group: 'networking.k8s.io'
-      kind: Ingress
-    - group: 'autoscaling'
-      kind: HorizontalPodAutoscaler
+    - group: '*'
+      kind: '*'

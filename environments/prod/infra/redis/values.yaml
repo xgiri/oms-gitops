@@ -1,0 +1,16 @@
+# Bitnami Redis chart. Standalone for dev/test (matches the single
+# redis:7-alpine container docker-compose.yml runs); replicated for uat/prod.
+architecture: replication
+replica:
+  replicaCount: 2
+auth:
+  enabled: true
+  # existingSecret populated by Vault Agent injection or the Vault CSI
+  # driver, same source of truth the app itself reads REDIS_PASSWORD from
+  # (see spring-cloud-vault, application-prod.properties) — never a plain
+  # value committed here.
+  existingSecret: redis-auth
+master:
+  persistence:
+    enabled: true
+    size: 10Gi

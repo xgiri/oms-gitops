@@ -1,0 +1,14 @@
+# kube-prometheus-stack — installs the Prometheus Operator CRDs (PodMonitor,
+# ServiceMonitor, etc.) that every service's 06/09-podmonitor.yaml and
+# Grafana dashboard ConfigMaps (dashboard-sidecar label) depend on. This
+# MUST sync before the app tier or those resources fail to apply.
+grafana:
+  enabled: true
+  adminPassword: CHANGE_ME   # inject via Vault/ExternalSecret in real envs, never commit a real value
+  sidecar:
+    dashboards:
+      enabled: true   # picks up each service's grafana-dashboard ConfigMap automatically
+prometheus:
+  prometheusSpec:
+    retention: 3d
+    podMonitorSelectorNilUsesHelmValues: false   # so it picks up PodMonitors outside its own release

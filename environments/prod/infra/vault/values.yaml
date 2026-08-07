@@ -1,0 +1,19 @@
+server:
+  ha:
+    enabled: true
+    replicas: 3
+  # Real storage backend for test/uat/prod — dev mode (in-memory, single
+  # replica, auto-unsealed) is what docker-compose uses locally; never use
+  # dev mode past a laptop. Swap 'file' for your actual backend (Consul,
+  # Raft integrated storage shown here, or a cloud KMS auto-unseal setup)
+  # before this is real.
+  dataStorage:
+    enabled: true
+    size: 20Gi
+  # Kubernetes auth is what lets the app pods authenticate to Vault using
+  # their own ServiceAccount token instead of a static root token — see
+  # each service's 12-serviceaccount.yaml. Enable the auth method + write
+  # policies/roles as a one-time `vault` CLI step (or a Job) after this
+  # chart installs; not something Helm values alone configure.
+injector:
+  enabled: true

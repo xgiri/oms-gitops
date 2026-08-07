@@ -1,0 +1,12 @@
+# Bitnami Kafka chart — direct broker deployment, mirrors the single-broker
+# apache/kafka:3.7.0 container docker-compose.yml runs locally. Bump
+# replicaCount + KRaft controller count together for anything past dev.
+replicaCount: 3
+kraft:
+  enabled: true
+listeners:
+  client:
+    protocol: PLAINTEXT   # switch to SASL_SSL once you're off localhost-equivalent trust
+persistence:
+  enabled: true
+  size: 50Gi

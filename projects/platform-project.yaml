@@ -1,17 +1,18 @@
-# Project for the root Application itself, kept separate so bootstrap has
-# the narrowest scope of all: it can only touch other Application objects.
+# Scope for the 4 root Applications (one per environment). Deliberately the
+# narrowest project of all — it can only touch other Application objects,
+# never a workload directly.
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
   name: platform
   namespace: argocd
 spec:
-  description: Scope for the single root (app-of-apps) Application.
+  description: Scope for the per-environment root (app-of-apps) Applications.
   sourceRepos:
-    - https://github.com/org/gitops.git
+    - https://github.com/xgiri/gitops.git
   destinations:
     - namespace: argocd
-      server: https://kubernetes.default.svc
+      server: '*'
   clusterResourceWhitelist:
     - group: 'argoproj.io'
       kind: Application

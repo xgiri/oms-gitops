@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Remote base: shipment-service's OWN repo owns these manifests (source of truth lives
+# there, not here). ?ref= pins which branch/tag this environment tracks —
+# see README.md's "environment -> ref" table for why prod pins a release
+# tag while dev tracks a branch.
+resources:
+  - https://github.com/xgiri/shipment-service//k8s?ref=v1.0.0
+
+images:
+  - name: your-registry.example.com/shipment-service
+    newName: your-registry.example.com/shipment-service
+    newTag: REPLACE_ME   # set by CI at deploy time, e.g. `kustomize edit set image your-registry.example.com/shipment-service=your-registry.example.com/shipment-service:$GIT_SHA`
+
+patches:
+  - target:
+      kind: ConfigMap
+      name: shipment-service-config
+    patch: |-
+      - op: replace
+        path: /data/SPRING_PROFILES_ACTIVE
+        value: "prod"
+      - op: replace
+        path: /data/DB_HOST
+        value: "shipment-service-db.prod.oms-rds.example.internal"
+      - op: replace
+        path: /data/VAULT_ADDR
+        value: "http://vault.vault.svc.cluster.local:8200"
+  - target:
+      kind: Deployment
+      name: shipment-service-web
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+  - target:
+      kind: Deployment
+      name: shipment-service-worker
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2

@@ -1,9 +1,0 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: external-secrets
-resources:
-  - https://raw.githubusercontent.com/external-secrets/external-secrets/v0.10.4/deploy/crds/bundle.yaml
-  # NOTE: in practice most teams install this via the Helm chart instead of raw
-  # manifests (there's no single upstream "all-in-one" yaml) — swap this
-  # kustomization for a HelmChart resource or an Argo CD `source.helm` block
-  # if that's your case. Left as kustomize here to keep the pattern consistent.

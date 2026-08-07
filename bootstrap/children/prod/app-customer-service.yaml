@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-customer-service
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  project: apps
+  source:
+    repoURL: https://github.com/xgiri/gitops.git
+    targetRevision: main
+    path: environments/prod/apps/customer-service
+  destination:
+    name: prod
+    namespace: oms-core
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
