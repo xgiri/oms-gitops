@@ -26,3 +26,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # See dev's infra-keda.yaml for the full explanation — KEDA's
+      # scaledjobs.keda.sh CRD exceeds the 262144-byte annotation limit
+      # under client-side apply. Server-side apply avoids it.
+      - ServerSideApply=true

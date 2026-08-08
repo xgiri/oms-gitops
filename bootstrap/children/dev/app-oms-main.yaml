@@ -18,8 +18,6 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
   # Same reasoning as app-shipment-service.yaml — oms-worker is also
   # KEDA-scaled (see oms-main's own 07-scaledobject-worker.yaml), so
   # selfHeal must not fight it over /spec/replicas.

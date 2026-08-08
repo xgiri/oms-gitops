@@ -18,8 +18,6 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
   # KEDA's ScaledObject drives shipment-service-worker's replica count at
   # runtime — without this, Argo CD's selfHeal above would keep reverting
   # KEDA's scaling back to whatever's declared in git on every reconcile,

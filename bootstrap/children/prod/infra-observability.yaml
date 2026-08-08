@@ -26,3 +26,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # See dev's infra-observability.yaml — kube-prometheus-stack's CRDs
+      # hit the same 262144-byte annotation limit as KEDA's under
+      # client-side apply.
+      - ServerSideApply=true

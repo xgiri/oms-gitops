@@ -26,3 +26,10 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # kube-prometheus-stack's Prometheus/Alertmanager/PrometheusRule CRDs
+      # are the textbook example of hitting Kubernetes' 262144-byte
+      # annotation limit under client-side apply — same root cause as
+      # KEDA's scaledjobs.keda.sh (see infra-keda.yaml). Server-side apply
+      # avoids it entirely; adding this proactively rather than waiting
+      # for the same failure here.
+      - ServerSideApply=true
