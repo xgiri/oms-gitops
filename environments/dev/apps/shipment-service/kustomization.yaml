@@ -87,5 +87,5 @@ patches:
 # match whatever `docker images` shows you locally.
 images:
   - name: your-registry.example.com/shipment-service
-    newName: REPLACE_WITH_YOUR_LOCAL_IMAGE_NAME   # e.g. output of: docker images | findstr shipment
-    newTag: REPLACE_WITH_YOUR_LOCAL_IMAGE_TAG
+    newName: shipment-service   # e.g. output of: docker images | findstr shipment
+    newTag: ce1a49fc5900
