@@ -19,14 +19,30 @@ Postgres, Kafka, Redis, and `oms-main` all still run via docker-compose on
 the same machine — dev's Kubernetes workloads reach them through Docker
 Desktop's `host.docker.internal` DNS name rather than standing up a second
 copy of each in-cluster. See `environments/dev/apps/shipment-service/
-kustomization.yaml` for the pattern (also drops the KEDA-dependent
-`TriggerAuthentication`/`ScaledObject` resources, since KEDA isn't installed
-in dev). Apply the same pattern to the other 5 services as you bring each
-one into dev — `DB_HOST`/`DB_PORT` per service's own compose-mapped host
-port, `KAFKA_BOOTSTRAP_SERVERS` at `host.docker.internal:29092`, and any
-cross-service URL (JWKS, order-service, etc.) at `host.docker.internal:<that
-service's compose host port>` instead of the in-cluster Service DNS name
-that `prod` uses.
+kustomization.yaml` for the pattern. Apply the same pattern to the other 5
+services as you bring each one into dev — `DB_HOST`/`DB_PORT` per service's
+own compose-mapped host port, `KAFKA_BOOTSTRAP_SERVERS` at
+`host.docker.internal:29092`, and any cross-service URL (JWKS, order-
+service, etc.) at `host.docker.internal:<that service's compose host port>`
+instead of the in-cluster Service DNS name that `prod` uses.
+
+KEDA itself **does** run in-cluster in dev (`bootstrap/children/dev/
+infra-keda.yaml`, wave -2) — both `oms-main` and `shipment-service` ship
+`ScaledObject`/`TriggerAuthentication` CRs their worker Deployments depend
+on for autoscaling, so dev needs KEDA's CRDs registered regardless of
+everything else running via compose. The one thing that still needs a
+patch is any KEDA trigger with a *hardcoded* connection detail baked into
+the CR itself rather than read from a ConfigMap/Secret — shipment-service's
+Kafka trigger's `bootstrapServers` is one (see the patch in its
+kustomization.yaml); check for the same pattern in each service's own
+`07-scaledobject-worker.yaml` as you bring it into dev.
+
+Any Application whose kustomization sets a Deployment's `spec.replicas`
+while that same Deployment also has a KEDA `ScaledObject` needs
+`ignoreDifferences` on `/spec/replicas` in its bootstrap Application (see
+`app-shipment-service.yaml` and `app-oms-main.yaml`) — otherwise Argo CD's
+`selfHeal` fights KEDA, reverting its scaling back to the git-declared
+value on every reconcile.
 
 Each service's real `DB_USERNAME`/`DB_PASSWORD` Secret is applied
 separately (see `secret.dev.example.yaml` next to shipment-service's
@@ -34,9 +50,9 @@ kustomization.yaml) — copy it, fill in the same values already in your
 compose `.env`, apply the copy, never commit it (`.gitignore` already
 excludes `secret.*.yaml` except the tracked `*.example.yaml` templates).
 
-Once dev's infra tier (Vault, Kafka, Redis, KEDA) actually runs in-cluster
-instead of via compose, drop the `host.docker.internal` patches and the
-KEDA-delete patches — at that point dev's kustomization looks like prod's.
+Once dev's infra tier (Vault, Kafka, Redis) actually runs in-cluster
+instead of via compose, drop the `host.docker.internal` patches — at that
+point dev's kustomization looks like prod's.
 
 ## Why environment-first
 Component (infra vs. app) is nested *inside* environment, not the other way
@@ -73,7 +89,7 @@ all of them healthy.
 | Wave | Component | Why |
 |---|---|---|
 | -3 | infra-namespaces | Everything else needs its namespace to exist |
-| -2 | infra-cert-manager, infra-vault, infra-kafka, infra-redis | Core infra, no interdependency between these four |
+| -2 | infra-cert-manager, infra-vault, infra-kafka, infra-redis, infra-keda | Core infra, no interdependency between these five |
 | -1 | infra-ingress-nginx, infra-observability, infra-loki | Needs cert-manager's CRDs/webhook up first; installs the Prometheus Operator CRDs every service's PodMonitor + Grafana dashboard ConfigMap depends on |
 | 10 | app-oms-main | Every other service verifies JWTs against its `/.well-known/jwks.json` |
 | 11 | app-product-service, app-customer-service, app-shipment-service, app-oms-bff | Each needs `oms-main` healthy (JWKS); independent of each other |

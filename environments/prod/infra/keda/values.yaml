@@ -1,0 +1,9 @@
+# KEDA — installs the ScaledObject/TriggerAuthentication CRDs that both
+# oms-main's and shipment-service's own k8s/07-scaledobject-worker.yaml
+# manifests depend on. 2 replicas for the operator's own HA (it's a
+# controller, not something your workloads call directly, but losing it
+# entirely means autoscaling silently stops reacting to load).
+operator:
+  replicaCount: 2
+metricsServer:
+  replicaCount: 2

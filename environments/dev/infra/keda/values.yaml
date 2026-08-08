@@ -1,0 +1,5 @@
+# KEDA — installs the ScaledObject/TriggerAuthentication CRDs that both
+# oms-main's and shipment-service's own k8s/07-scaledobject-worker.yaml
+# manifests depend on. Defaults are fine for a single-node local cluster.
+operator:
+  replicaCount: 1

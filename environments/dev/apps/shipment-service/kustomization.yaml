@@ -13,34 +13,25 @@ resources:
 # not just containers — they share the same VM). No in-cluster Vault/Kafka/
 # Postgres needed for this service in dev.
 #
-# KEDA isn't installed in dev's Docker Desktop cluster. These two resources
-# are keda.sh/v1alpha1 CRs — kustomize build succeeds regardless (it doesn't
-# touch the live cluster), but `kubectl apply`/Argo CD sync fails on them
-# with "no matches for kind" until KEDA's CRDs exist. Dropping both here;
-# the worker Deployment itself has no KEDA dependency and stays, it just
-# runs at a fixed replica count instead of autoscaling on outbox depth.
-# Remove these two patches once KEDA is installed in dev (see README).
+# KEDA is now installed in dev via bootstrap/children/dev/infra-keda.yaml
+# (wave -2, before the app tier). Its TriggerAuthentication/ScaledObject
+# resources are kept as-is from the remote base — only the Kafka trigger's
+# bootstrapServers needs patching, since it's hardcoded in the ScaledObject
+# CR itself (not read from the ConfigMap) and the base value ("kafka:9092")
+# is the in-cluster DNS name, unreachable from dev where Kafka still runs
+# via docker-compose. The postgresql trigger needs no patch — it reads
+# OUTBOX_PG_CONNECTION from the Secret via TriggerAuthentication, and that
+# connection string already points at host.docker.internal:5435 (see
+# secret.dev.example.yaml next to this file).
 patches:
-  - target:
-      group: keda.sh
-      kind: TriggerAuthentication
-      name: shipment-service-outbox-pg-auth
-    patch: |-
-      $patch: delete
-      apiVersion: keda.sh/v1alpha1
-      kind: TriggerAuthentication
-      metadata:
-        name: shipment-service-outbox-pg-auth
   - target:
       group: keda.sh
       kind: ScaledObject
       name: shipment-service-worker
     patch: |-
-      $patch: delete
-      apiVersion: keda.sh/v1alpha1
-      kind: ScaledObject
-      metadata:
-        name: shipment-service-worker
+      - op: replace
+        path: /spec/triggers/0/metadata/bootstrapServers
+        value: "host.docker.internal:29092"
 
   # NOTE: no VAULT_ADDR patch here — shipment-service has no Vault
   # integration at all (see its own 00-configmap.yaml comment; DB creds are
