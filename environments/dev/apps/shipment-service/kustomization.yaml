@@ -88,4 +88,4 @@ patches:
 images:
   - name: your-registry.example.com/shipment-service
     newName: shipment-service   # e.g. output of: docker images | findstr shipment
-    newTag: ce1a49fc5900
+    newTag: local
