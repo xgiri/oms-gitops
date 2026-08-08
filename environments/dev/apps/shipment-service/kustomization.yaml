@@ -73,6 +73,18 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 1
+      # The base Deployment sets runAsNonRoot: true but no explicit
+      # runAsUser — the kubelet then can't verify a non-numeric image USER
+      # (Dockerfile: `useradd --system ... shipmentservice`, no fixed UID
+      # across builds) is actually non-root, and refuses to start the
+      # container ("cannot verify user is non-root"). 999 is this specific
+      # local image's UID — confirmed via:
+      #   docker run --rm --entrypoint id shipment-service:local -u shipmentservice
+      # Re-check this if the image gets rebuilt with a different base image
+      # or Dockerfile — the UID isn't guaranteed stable across rebuilds.
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/runAsUser
+        value: 999
   - target:
       kind: Deployment
       name: shipment-service-worker
@@ -80,6 +92,9 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 1
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext/runAsUser
+        value: 999
 
 # Docker Desktop's Kubernetes shares the same image store as `docker build`/
 # `docker compose build` on the host (imagePullPolicy: IfNotPresent on both
