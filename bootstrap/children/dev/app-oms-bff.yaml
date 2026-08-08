@@ -18,3 +18,10 @@ spec:
     automated:
       prune: true
       selfHeal: true
+  # oms-bff has its own native HorizontalPodAutoscaler (CPU/memory-based) — selfHeal must not fight it over /spec/replicas.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: oms-bff
+      jsonPointers:
+        - /spec/replicas

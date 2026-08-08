@@ -24,3 +24,8 @@ spec:
       name: oms-worker
       jsonPointers:
         - /spec/replicas
+    - group: apps
+      kind: Deployment
+      name: oms-web
+      jsonPointers:
+        - /spec/replicas

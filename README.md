@@ -38,11 +38,18 @@ kustomization.yaml); check for the same pattern in each service's own
 `07-scaledobject-worker.yaml` as you bring it into dev.
 
 Any Application whose kustomization sets a Deployment's `spec.replicas`
-while that same Deployment also has a KEDA `ScaledObject` needs
-`ignoreDifferences` on `/spec/replicas` in its bootstrap Application (see
-`app-shipment-service.yaml` and `app-oms-main.yaml`) — otherwise Argo CD's
-`selfHeal` fights KEDA, reverting its scaling back to the git-declared
-value on every reconcile.
+while that same Deployment is *also* managed by an autoscaler —KEDA's
+`ScaledObject` (worker Deployments) or a plain native
+`HorizontalPodAutoscaler` (every service's own web-tier Deployment, e.g.
+`oms-main`'s `05-hpa-web.yaml`, `shipment-service`'s `03-hpa-web.yaml`,
+etc.) — needs `ignoreDifferences` on `/spec/replicas` in its bootstrap
+Application for that Deployment. All 6 services already have this for both
+their web and worker tiers (see any `app-*.yaml` under `bootstrap/
+children/`). Without it, Argo CD's `selfHeal` fights the autoscaler,
+reverting its scaling back to the git-declared value roughly every 15s (the
+HPA controller's default reconcile interval) — visible as the target
+Deployment flapping `Synced` → `OutOfSync` → `Synced` in `kubectl get
+application <name> -n argocd -w` with nothing else actually wrong.
 
 Each service's real `DB_USERNAME`/`DB_PASSWORD` Secret is applied
 separately (see `secret.dev.example.yaml` next to shipment-service's

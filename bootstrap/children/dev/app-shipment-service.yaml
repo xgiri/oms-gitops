@@ -19,12 +19,20 @@ spec:
       prune: true
       selfHeal: true
   # KEDA's ScaledObject drives shipment-service-worker's replica count at
-  # runtime — without this, Argo CD's selfHeal above would keep reverting
-  # KEDA's scaling back to whatever's declared in git on every reconcile,
-  # fighting the autoscaler instead of letting it work.
+  # runtime, and shipment-service-web has its own separate native
+  # HorizontalPodAutoscaler (CPU/memory-based, not KEDA) — without ignoring
+  # both, Argo CD's selfHeal above keeps reverting each one's scaling back
+  # to whatever's declared in git roughly every 15s (the HPA controller's
+  # default reconcile interval), fighting both autoscalers instead of
+  # letting either work.
   ignoreDifferences:
     - group: apps
       kind: Deployment
       name: shipment-service-worker
+      jsonPointers:
+        - /spec/replicas
+    - group: apps
+      kind: Deployment
+      name: shipment-service-web
       jsonPointers:
         - /spec/replicas
