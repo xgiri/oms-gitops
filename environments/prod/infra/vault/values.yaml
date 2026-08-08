@@ -2,7 +2,7 @@ server:
   ha:
     enabled: true
     replicas: 3
-  # Real storage backend for test/uat/prod — dev mode (in-memory, single
+  # Real storage backend for prod — dev mode (in-memory, single
   # replica, auto-unsealed) is what docker-compose uses locally; never use
   # dev mode past a laptop. Swap 'file' for your actual backend (Consul,
   # Raft integrated storage shown here, or a cloud KMS auto-unseal setup)

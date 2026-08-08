@@ -3,13 +3,9 @@
 ## Bootstrap (one-time, manual, once per environment/cluster)
 ```
 argocd cluster add <dev-context>  --name dev
-argocd cluster add <test-context> --name test
-argocd cluster add <uat-context>  --name uat
 argocd cluster add <prod-context> --name prod
 
 kubectl apply -f bootstrap/root-dev.yaml  --context <dev-context>
-kubectl apply -f bootstrap/root-test.yaml --context <test-context>
-kubectl apply -f bootstrap/root-uat.yaml  --context <uat-context>
 kubectl apply -f bootstrap/root-prod.yaml --context <prod-context>
 ```
 Each `root-<env>` Application then manages everything under
@@ -35,9 +31,11 @@ environment tracks and *what overrides* apply.
 | Environment | ref each service repo is pinned to |
 |---|---|
 | dev  | `main` — always latest |
-| test | `release/test` branch |
-| uat  | `release/uat` branch |
 | prod | a pinned release tag (e.g. `v1.0.0`) — bumped deliberately, never tracks a branch |
+
+> `test` and `uat` are removed for now — re-add them the same way `dev`/`prod`
+> are structured (a `root-<env>.yaml`, a `bootstrap/children/<env>/` folder,
+> and an `environments/<env>/` tree) whenever they're actually needed.
 
 ## Sync wave plan (same shape in every environment)
 Derived directly from the `depends_on` graph in the docker-compose you
@@ -75,16 +73,16 @@ all of them healthy.
 3. Add `bootstrap/children/<env>/app-<new-service>.yaml` — wave 11 if it
    only depends on `oms-main`, otherwise pick the wave after whatever it
    actually depends on.
-4. Repeat for all 4 environments.
+4. Repeat for both environments (`dev`, `prod`).
 5. Add the new repo URL to `projects/apps-project.yaml`'s `sourceRepos`.
 
 ## Layout
 ```
 bootstrap/
-  root-{dev,test,uat,prod}.yaml   <- 4 manual applies, one per environment
-  children/{dev,test,uat,prod}/    <- per-env Application objects, sync-wave annotated
+  root-{dev,prod}.yaml   <- 2 manual applies, one per environment
+  children/{dev,prod}/    <- per-env Application objects, sync-wave annotated
 environments/
-  {dev,test,uat,prod}/
+  {dev,prod}/
     infra/
       namespaces/                  <- plain kustomize
       cert-manager/values.yaml     <- helm values, chart pulled from jetstack
@@ -98,7 +96,7 @@ environments/
       {oms-main,oms-gateway,oms-bff,product-service,customer-service,shipment-service}/
         kustomization.yaml         <- remote base (service's own repo) + env patches
 projects/
-  platform-project.yaml            <- scope for the 4 root apps
+  platform-project.yaml            <- scope for the 2 root apps
   infra-project.yaml               <- scope for infra tier
   apps-project.yaml                <- scope for app tier (namespaced only)
 ```

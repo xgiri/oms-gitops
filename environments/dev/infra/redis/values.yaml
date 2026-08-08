@@ -1,5 +1,5 @@
-# Bitnami Redis chart. Standalone for dev/test (matches the single
-# redis:7-alpine container docker-compose.yml runs); replicated for uat/prod.
+# Bitnami Redis chart. Standalone for dev (matches the single
+# redis:7-alpine container docker-compose.yml runs); replicated for prod.
 architecture: standalone
 replica:
   replicaCount: 0
