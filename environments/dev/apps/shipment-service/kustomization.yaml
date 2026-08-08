@@ -1,19 +1,54 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Remote base: shipment-service's OWN repo owns these manifests (source of truth lives
-# there, not here). ?ref= pins which branch/tag this environment tracks —
-# see README.md's "environment -> ref" table for why prod pins a release
-# tag while dev tracks a branch.
+# Remote base: shipment-service's OWN repo owns these manifests (source of
+# truth lives there, not here). ?ref= pins which branch/tag this environment
+# tracks — see README.md's "environment -> ref" table.
 resources:
   - https://github.com/xgiri/oms-shipment-service//k8s?ref=main
 
-images:
-  - name: your-registry.example.com/shipment-service
-    newName: your-registry.example.com/shipment-service
-    newTag: REPLACE_ME   # set by CI at deploy time, e.g. `kustomize edit set image your-registry.example.com/shipment-service=your-registry.example.com/shipment-service:$GIT_SHA`
-
+# dev == Docker Desktop's Kubernetes running locally. Postgres, Kafka, and
+# oms-main all still run via docker-compose on the same host, reached
+# through Docker Desktop's host.docker.internal DNS name (works from pods,
+# not just containers — they share the same VM). No in-cluster Vault/Kafka/
+# Postgres needed for this service in dev.
+#
+# KEDA isn't installed in dev's Docker Desktop cluster. These two resources
+# are keda.sh/v1alpha1 CRs — kustomize build succeeds regardless (it doesn't
+# touch the live cluster), but `kubectl apply`/Argo CD sync fails on them
+# with "no matches for kind" until KEDA's CRDs exist. Dropping both here;
+# the worker Deployment itself has no KEDA dependency and stays, it just
+# runs at a fixed replica count instead of autoscaling on outbox depth.
+# Remove these two patches once KEDA is installed in dev (see README).
 patches:
+  - target:
+      group: keda.sh
+      kind: TriggerAuthentication
+      name: shipment-service-outbox-pg-auth
+    patch: |-
+      $patch: delete
+      apiVersion: keda.sh/v1alpha1
+      kind: TriggerAuthentication
+      metadata:
+        name: shipment-service-outbox-pg-auth
+  - target:
+      group: keda.sh
+      kind: ScaledObject
+      name: shipment-service-worker
+    patch: |-
+      $patch: delete
+      apiVersion: keda.sh/v1alpha1
+      kind: ScaledObject
+      metadata:
+        name: shipment-service-worker
+
+  # NOTE: no VAULT_ADDR patch here — shipment-service has no Vault
+  # integration at all (see its own 00-configmap.yaml comment; DB creds are
+  # a plain K8s Secret, applied separately — see secret.dev.example.yaml
+  # next to this file). A previous version of this file patched
+  # /data/VAULT_ADDR with `op: replace`, which fails at apply time since
+  # that key never exists in the base ConfigMap in the first place —
+  # `replace` requires the path to already exist.
   - target:
       kind: ConfigMap
       name: shipment-service-config
@@ -23,10 +58,23 @@ patches:
         value: "dev"
       - op: replace
         path: /data/DB_HOST
-        value: "shipment-service-db.dev.oms-rds.example.internal"
+        value: "host.docker.internal"
       - op: replace
-        path: /data/VAULT_ADDR
-        value: "http://vault.vault.svc.cluster.local:8200"
+        path: /data/DB_PORT
+        value: "5435"   # docker-compose's host-mapped port for shipment-service's own Postgres
+      - op: replace
+        path: /data/KAFKA_BOOTSTRAP_SERVERS
+        value: "host.docker.internal:29092"   # compose's EXTERNAL listener, not the internal kafka:9092
+      - op: replace
+        path: /data/ORDER_SERVICE_BASE_URL
+        value: "http://host.docker.internal:8080/api/v1"
+      - op: replace
+        path: /data/AUTH_SERVICE_JWKS_URI
+        value: "http://host.docker.internal:8080/.well-known/jwks.json"
+      # OTLP_TRACING_ENDPOINT left pointing at "http://tempo:4318/v1/traces"
+      # — resolves to nothing until tempo also runs in dev. Harmless: a
+      # failed trace export just logs a warning, doesn't block startup.
+
   - target:
       kind: Deployment
       name: shipment-service-web
@@ -41,3 +89,12 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 1
+
+# Docker Desktop's Kubernetes shares the same image store as `docker build`/
+# `docker compose build` on the host (imagePullPolicy: IfNotPresent on both
+# Deployments already), so nothing needs pushing to a registry here — just
+# match whatever `docker images` shows you locally.
+images:
+  - name: your-registry.example.com/shipment-service
+    newName: REPLACE_WITH_YOUR_LOCAL_IMAGE_NAME   # e.g. output of: docker images | findstr shipment
+    newTag: REPLACE_WITH_YOUR_LOCAL_IMAGE_TAG

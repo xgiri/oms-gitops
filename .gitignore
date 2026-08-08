@@ -49,3 +49,7 @@ logs/
 ### Bruno — local-only environment files that may hold secrets/tokens ###
 bruno/.env
 bruno/environments/*.local.bru
+### Filled-in secret copies — the *.example.yaml templates are tracked,
+### filled copies (secret.dev.yaml, etc.) never should be ###
+**/secret.*.yaml
+!**/secret.*.example.yaml

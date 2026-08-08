@@ -12,7 +12,7 @@ spec:
     targetRevision: main
     path: environments/dev/infra/namespaces
   destination:
-    name: dev
+    name: in-cluster   # Argo CD's own cluster — dev IS Docker Desktop, no `argocd cluster add` needed
     namespace: argocd
   syncPolicy:
     automated:

@@ -1,15 +1,42 @@
 # gitops — environment-first structure
 
-## Bootstrap (one-time, manual, once per environment/cluster)
+## Bootstrap (one-time, manual)
+`dev` is Docker Desktop's own Kubernetes — the same cluster Argo CD itself
+runs in — so it needs no `argocd cluster add` step, just:
 ```
-argocd cluster add <dev-context>  --name dev
+kubectl apply -f bootstrap/root-dev.yaml
+```
+`prod` is a real separate cluster, registered first:
+```
 argocd cluster add <prod-context> --name prod
-
-kubectl apply -f bootstrap/root-dev.yaml  --context <dev-context>
 kubectl apply -f bootstrap/root-prod.yaml --context <prod-context>
 ```
 Each `root-<env>` Application then manages everything under
 `bootstrap/children/<env>/` for that environment/cluster only.
+
+## dev == Docker Desktop, running alongside docker-compose
+Postgres, Kafka, Redis, and `oms-main` all still run via docker-compose on
+the same machine — dev's Kubernetes workloads reach them through Docker
+Desktop's `host.docker.internal` DNS name rather than standing up a second
+copy of each in-cluster. See `environments/dev/apps/shipment-service/
+kustomization.yaml` for the pattern (also drops the KEDA-dependent
+`TriggerAuthentication`/`ScaledObject` resources, since KEDA isn't installed
+in dev). Apply the same pattern to the other 5 services as you bring each
+one into dev — `DB_HOST`/`DB_PORT` per service's own compose-mapped host
+port, `KAFKA_BOOTSTRAP_SERVERS` at `host.docker.internal:29092`, and any
+cross-service URL (JWKS, order-service, etc.) at `host.docker.internal:<that
+service's compose host port>` instead of the in-cluster Service DNS name
+that `prod` uses.
+
+Each service's real `DB_USERNAME`/`DB_PASSWORD` Secret is applied
+separately (see `secret.dev.example.yaml` next to shipment-service's
+kustomization.yaml) — copy it, fill in the same values already in your
+compose `.env`, apply the copy, never commit it (`.gitignore` already
+excludes `secret.*.yaml` except the tracked `*.example.yaml` templates).
+
+Once dev's infra tier (Vault, Kafka, Redis, KEDA) actually runs in-cluster
+instead of via compose, drop the `host.docker.internal` patches and the
+KEDA-delete patches — at that point dev's kustomization looks like prod's.
 
 ## Why environment-first
 Component (infra vs. app) is nested *inside* environment, not the other way
